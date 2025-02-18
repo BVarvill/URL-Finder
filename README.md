@@ -1,6 +1,12 @@
 # URL-Finder
 URL Finder
 
+
+from selenium import webdriver
+from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.common.by import By
+import time
+
 def scrape_google_search(query, num_results=20):
     driver_path = r"/Users/benvarvill/Downloads/chromedriver-mac-arm64 2/chromedriver"  # Adjust path
     service = Service(driver_path)

@@ -1,43 +1,56 @@
-```python
 # URL Finder
-from selenium import webdriver
-from selenium.webdriver.chrome.service import Service
-from selenium.webdriver.common.by import By
-import time
 
-def scrape_google_search(query, num_results=20):
-    driver_path = r"/Users/benvarvill/Downloads/chromedriver-mac-arm64 2/chromedriver"  # Adjust path
-    service = Service(driver_path)
-    driver = webdriver.Chrome(service=service)
+A lightweight Google search scraper that collects URLs for a given query using Selenium. Built as the first stage of a lead-generation pipeline — feeding URLs into a downstream web scraper for contact and institution extraction.
 
-    driver.get(f"https://www.google.com/search?q={query}")
-    urls = []
+## What it does
 
-    while len(urls) < num_results:
-        try:
-            results = driver.find_elements(By.XPATH, "//a[h3]")  
-            for result in results:
-                url = result.get_attribute("href")
-                if url and url not in urls:  
-                    urls.append(url)
-                if len(urls) >= num_results:
-                    break
+Given a search query (e.g. `"Quantum research center director"`), it:
 
-            try:
-                next_button = driver.find_element(By.XPATH, "//a[@id='pnnext']")
-                next_button.click()
-                time.sleep(2)
-            except:
-                print("No more pages available or 'Next' button not found.")
-                break
+1. Opens a Chrome browser via Selenium
+2. Paginates through Google search results
+3. Collects up to N result URLs
+4. Returns them as a clean list for further processing
 
-        except Exception as e:
-            print(f"Error encountered: {e}")
-            break  
+## Setup
 
-    driver.quit()
-    return urls
+**Install dependencies:**
+```bash
+pip install selenium webdriver-manager
+```
 
+> `webdriver-manager` handles ChromeDriver installation automatically — no manual driver path needed.
+
+## Usage
+
+Edit the query at the bottom of `url_finder.py`:
+
+```python
 query = "Quantum research center director"
-search_results = scrape_google_search(query, num_results=20)  # Fetch up to 20 URLs
-print(search_results)
+results = scrape_google_search(query, num_results=20)
+```
+
+Then run:
+```bash
+python url_finder.py
+```
+
+URLs are printed to stdout and can be piped into downstream scripts.
+
+## Function reference
+
+```python
+scrape_google_search(query: str, num_results: int = 20) -> list[str]
+```
+
+| Parameter     | Description                        | Default |
+|--------------|------------------------------------|---------|
+| `query`      | The Google search query            | —       |
+| `num_results`| Maximum number of URLs to return   | `20`    |
+
+## Pipeline context
+
+```
+URL Finder  →  WebScraper  →  Lead Enrichment Pipeline
+```
+
+This script feeds into [WebScraper](https://github.com/BVarvill/WebScraper), which extracts institution names, research centres, and director names from each URL.
